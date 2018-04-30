@@ -416,8 +416,54 @@ void SystemControl::OnAppServiceClosed(Windows::ApplicationModel::AppService::Ap
 {
     m_quitting = true;
 }
-
-
 ```
+
+This code will keep the Desktop Extension running until it is told to quit or the connection to the AppService is closed. 
+
+
+### Modify the UWP app to launch the Desktop Extension
+
+In order to use FullTrustProcessLauncher we need to add a reference to the Windows Desktop Extension for the UWP
+
+We will use the UWP Method FullTrustProcessLauncher to launch the Desktop Extension app from the UWP app. In order to use FullTrustProcessLauncher we need to do the following:
+
+* In the UWP project, right-click on References and select Add Reference. 
+
+* Click on the Universal Windows tab. Select Extensions
+
+* Carefully select the Windows Desktop Extension for the UWP (version 10.0.15063). Click on OK.
+
+* Add the following methods to MainPage.xaml.cs
+
+```xml
+using System.Threading.Tasks;
+using Windows.ApplicationModel;
+using Windows.Foundation.Metadata;
+
+protected override async void OnNavigatedTo(NavigationEventArgs e)
+{
+    await LaunchDesktopExtension();
+}
+
+private async Task LaunchDesktopExtension()
+{
+    if (ApiInformation.IsApiContractPresent("Windows.ApplicationModel.FullTrustAppContract", 1, 0))
+    {
+        await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
+    }
+}
+```xml
+
+In order to debug the Desktop Extension, edit the Debugging Properties of the UWP Project.
+
+* Right-click on the UWP project and select Properties
+
+* In the Debugging tab, set Background task process to Native Only
+
+* Set a breakpoint in SystemControlDesktopExtension.cpp
+
+* Build and run the app. The app should stop at the breakpoint.
+
+
  
  
