@@ -385,7 +385,7 @@ void SystemControl::OnRequestReceived(AppServiceConnection^ sender, AppServiceRe
         {
             auto name = dynamic_cast<Platform::String^>(request->Lookup("Name"));
             response->Insert("Status", "OK");
-            response->Insert("Message", "Hello " + name);
+            response->Insert("Message", "Hello " + name + "!");
         }
         else if (message == "Quit")
         {
@@ -464,6 +464,43 @@ In order to debug the Desktop Extension, edit the Debugging Properties of the UW
 
 * Build and run the app. The app should stop at the breakpoint.
 
+### Send a Message from the UWP App to the Desktop Extension
 
+We will now send a message to the Desktop Extension. Add a button to MainPage.xaml and create a Button click handler
+
+* In MainPage.xaml add
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <StackPanel Orientation="Vertical" Margin="10">
+            <Button Click="Button_Click" Content="Send Message" />
+            <TextBlock x:Name="resultText" Margin="10, 10"/>
+        </StackPanel>
+    </Grid>
+
+ * In MainPage.xaml.cs add the following method:
  
+ ```csharp
+ private async void Button_Click(object sender, RoutedEventArgs e)
+{
+    ValueSet message = new ValueSet();
+    message.Add("Message", "Hello");
+    message.Add("Name", "Jim");
+    var app = App.Current as App;
+    var result = await app.SendMessage(message);
+    if(result.ContainsKey("Status"))
+    {
+        string status = result["Status"] as string;
+        if(status == "OK")
+        {
+            resultText.Text = result["Message"] as string;
+        }
+    }
+}
+````
+
+* Build and run the app. You should be able to send and receive a message from the Desktop Extension via the AppService.
+
+### Adding Win32 API Functions to the Desktop Extension
+
+Take a look at SystemControl.cpp, SystemVolume.cpp, Brightness.cpp in this repo for how you can add Win32 API function via the AppService and Desktop Extension
  
