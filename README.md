@@ -90,3 +90,65 @@ We need to add a few settings so our Desktop Extension can call UWP methods. Ple
     * Set Configuration Properties | General | Output Directory to $(SolutionDir)$(PlatformTarget)\$(Configuration)\
 
 * Try to build the solution. All projects should build without an error.
+
+### Adding the App Service to the UWP project
+
+In order for the UWP App to be able to communicate with the Desktop Extension, we will use an [AppService](https://docs.microsoft.com/en-us/windows/uwp/launch-resume/convert-app-service-in-process)
+to send messages between the two processes.
+
+* In the UWP project, right-click on the file Package.appxmanifest and select View Code
+
+* Modify the Package tag to the following:
+
+```xml
+xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10" 
+xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" 
+IgnorableNamespaces="uap mp desktop rescap">
+```
+
+* Add the AppService and Desktop Extension to the Application section
+
+```xml
+  <Extensions>
+    <uap:Extension Category="windows.appService">
+      <uap:AppService Name="com.stammen.systemcontrol.appservice" />
+    </uap:Extension>
+    <desktop:Extension Category="windows.fullTrustProcess" Executable="DesktopExtensions/SystemControlDesktopExtension.exe" />
+  </Extensions>
+```
+
+* Your Application section should now look something like this:
+
+```xml
+    <Application Id="App"
+      Executable="$targetnametoken$.exe"
+      EntryPoint="SystemControl.App">
+      <uap:VisualElements
+        DisplayName="SystemControl"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png"
+        Description="SystemControl"
+        BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.appService">
+          <uap:AppService Name="com.stammen.systemcontrol.appservice" />
+        </uap:Extension>
+        <desktop:Extension Category="windows.fullTrustProcess" Executable="DesktopExtensions/SystemControlDesktopExtension.exe" />
+      </Extensions>
+    </Application>
+```
+
+* Add the following Capability to the Capabilities section
+
+```xml
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+```
