@@ -67,7 +67,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 * We are going to add a class called SystemControl to contain the logic of the Desktop Extension. Add a class called SystemControl to your project. 
 Stub in the following public method in SystemControl.h and .cpp
 
-	int  Run();
+```c++
+int  Run();
+```
 
 ### Adding UWP Support to the Desktop Extension
 
