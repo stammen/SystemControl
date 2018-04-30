@@ -129,17 +129,15 @@ BOOL CALLBACK MonitorEnumProc(HMONITOR monitor, HDC hdc, LPRECT rect, LPARAM par
 HRESULT Brightness::SetBrightness(double value)
 {
 	HRESULT hr = S_OK;
-	DWORD brightness = static_cast<DWORD>((value / 100.) * 100);
+	DWORD brightness = static_cast<DWORD>(value * 100.0);
 	EnumDisplayMonitors(NULL, NULL, &MonitorEnumProc, brightness);
-	return hr
+	return hr;
 }
 #else
 HRESULT Brightness::SetBrightness(double value)
 {
-	DWORD brightness = static_cast<DWORD>((value / 100.) * 100);
-	HRESULT hr = SetBrightnessDXGI(brightness);
-	return hr;
-
+	DWORD brightness = static_cast<DWORD>(value * 100.0);
+	return SetBrightnessDXGI(brightness);
 }
 #endif
 

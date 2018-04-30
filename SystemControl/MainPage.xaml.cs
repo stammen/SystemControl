@@ -57,7 +57,8 @@ namespace SystemControl
         {
             ValueSet message = new ValueSet();
             message.Add("Message", "Brightness");
-            message.Add("Value", e.NewValue);
+            double value = e.NewValue / 100.0;
+            message.Add("Value", value);
             var app = App.Current as App;
             var result = app.SendMessage(message);
         }
@@ -66,7 +67,8 @@ namespace SystemControl
         {
             ValueSet message = new ValueSet();
             message.Add("Message", "SystemVolume");
-            message.Add("Value", e.NewValue);
+            double value = e.NewValue / 100.0;
+            message.Add("Value", value);
             var app = App.Current as App;
             var result = app.SendMessage(message);
         }

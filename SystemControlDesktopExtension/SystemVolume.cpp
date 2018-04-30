@@ -11,7 +11,6 @@
 #include "SystemVolume.h"
 #include <mmdeviceapi.h>
 #include <endpointvolume.h>
-#include <math.h>
 #include <wrl.h>
 #include <wrl/client.h>
 
@@ -45,12 +44,10 @@ HRESULT ChangeVolume(double nVolume)
 	return hr;
 }
 
-
-
 HRESULT SystemVolume::SetSystemVolume(double value)
 {
 	HRESULT hr = S_OK;
-	ChangeVolume(value/100.);
+	ChangeVolume(value);
 	return hr;
 }
 
