@@ -15,5 +15,5 @@
 class SystemVolume
 {
 public:
-	static HRESULT SetSystemVolume(double value);
+    static HRESULT SetSystemVolume(double value);
 };

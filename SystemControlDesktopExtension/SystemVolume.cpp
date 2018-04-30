@@ -18,36 +18,36 @@ using namespace Microsoft::WRL;
 
 HRESULT ChangeVolume(double nVolume)
 {
-	HRESULT hr = S_OK;
+    HRESULT hr = S_OK;
 
-	ComPtr<IMMDevice> defaultDevice;
-	ComPtr<IMMDeviceEnumerator> deviceEnumerator;
-	ComPtr<IAudioEndpointVolume> endpointVolume;
+    ComPtr<IMMDevice> defaultDevice;
+    ComPtr<IMMDeviceEnumerator> deviceEnumerator;
+    ComPtr<IAudioEndpointVolume> endpointVolume;
 
-	hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER, __uuidof(IMMDeviceEnumerator), (LPVOID *)&deviceEnumerator);
+    hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER, __uuidof(IMMDeviceEnumerator), (LPVOID *)&deviceEnumerator);
 
-	if (SUCCEEDED(hr))
-	{
-		hr = deviceEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &defaultDevice);
-	}
+    if (SUCCEEDED(hr))
+    {
+        hr = deviceEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &defaultDevice);
+    }
 
-	if (SUCCEEDED(hr))
-	{
-		hr = defaultDevice->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL, (LPVOID *)&endpointVolume);
-	}
+    if (SUCCEEDED(hr))
+    {
+        hr = defaultDevice->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL, (LPVOID *)&endpointVolume);
+    }
 
-	if (SUCCEEDED(hr))
-	{
-		hr = endpointVolume->SetMasterVolumeLevelScalar((float)nVolume, NULL);
-	}
+    if (SUCCEEDED(hr))
+    {
+        hr = endpointVolume->SetMasterVolumeLevelScalar((float)nVolume, NULL);
+    }
 
-	return hr;
+    return hr;
 }
 
 HRESULT SystemVolume::SetSystemVolume(double value)
 {
-	HRESULT hr = S_OK;
-	ChangeVolume(value);
-	return hr;
+    HRESULT hr = S_OK;
+    ChangeVolume(value);
+    return hr;
 }
 

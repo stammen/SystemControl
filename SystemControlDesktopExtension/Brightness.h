@@ -16,10 +16,10 @@
 class Brightness
 {
 public:
-	static HRESULT SetBrightness(double value);
+    static HRESULT SetBrightness(double value);
 
 private:
-	static HRESULT DoSetBrightness();
-	static HRESULT SetBrightnessDXGI(DWORD brightness);
-	static std::mutex s_mutex;
+    static HRESULT DoSetBrightness();
+    static HRESULT SetBrightnessDXGI(DWORD brightness);
+    static std::mutex s_mutex;
 };
