@@ -500,7 +500,7 @@ We will now send a message to the Desktop Extension. Add a button to MainPage.xa
 }
 ```
 
-* Build and run the app. You should be able to send and receive a message from the Desktop Extension via the AppService.
+* Build and run the app. You should be able to send to and receive a message from the Desktop Extension via the AppService.
 
 ### Adding Win32 API Functions to the Desktop Extension
 
