@@ -418,6 +418,8 @@ void SystemControl::OnAppServiceClosed(Windows::ApplicationModel::AppService::Ap
 }
 ```
 
+Note: change com.stammen.systemcontrol.appservice to the name you specified in your package.appmanifest!
+
 This code will keep the Desktop Extension running until it is told to quit or the connection to the AppService is closed. 
 
 
