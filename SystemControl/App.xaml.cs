@@ -48,25 +48,6 @@ namespace SystemControl
             this.Suspending += OnSuspending;
         }
 
-        public async Task<ValueSet> SendMessage(ValueSet message)
-        {
-            ValueSet result = new ValueSet();
-
-            if(_appServiceConnection != null)
-            {
-                var response = await _appServiceConnection.SendMessageAsync(message);
-                if(response.Status == AppServiceResponseStatus.Success)
-                {
-                    result = response.Message;
-                }
-            }
-            else
-            {
-                result.Add("Error", "AppService has no connection to Win32 process");
-            }
-            return result;
-        }
-
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points
         /// will be used such as when the application is launched to open a specific file.
@@ -106,6 +87,25 @@ namespace SystemControl
                 // Ensure the current window is active
                 Window.Current.Activate();
             }
+        }
+
+        public async Task<ValueSet> SendMessage(ValueSet message)
+        {
+            ValueSet result = new ValueSet();
+
+            if (_appServiceConnection != null)
+            {
+                var response = await _appServiceConnection.SendMessageAsync(message);
+                if (response.Status == AppServiceResponseStatus.Success)
+                {
+                    result = response.Message;
+                }
+            }
+            else
+            {
+                result.Add("Error", "AppService has no connection to Win32 process");
+            }
+            return result;
         }
 
         protected override void OnBackgroundActivated(BackgroundActivatedEventArgs args)
