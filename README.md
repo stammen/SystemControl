@@ -1,4 +1,4 @@
-# System Control from a UWP App Sample
+# Win32 System Control from a UWP App Sample
 
 This sample demonstrates how a UWP application can call Win32 methods unavailable to a UWP application to control monitor brightness and global system volume. 
 The example uses a Win32 Desktop Extension and an AppService.
@@ -34,7 +34,57 @@ In order to replicate this scenario you will need to do the following:
 
 * Right click on the solution and select Add | New Project...
 
-* Select Visual C# | Windows Classic Desktop | Windows Form App. Name the project LauncherExtension. Select at least .NET framework 4.6.1.
+* Select Visual C++ | Windows Desktop | Windows Desktop Application. Name the project SystemControlDesktopExtension. 
 
+* In the file SystemControlDesktopExtension.cpp delete all methods except for wWinMain. It should look like this:
 
+```c++
+#include "stdafx.h"
+#include "SystemControlDesktopExtension.h"
+#include "SystemControl.h"
 
+// Global Variables:
+HINSTANCE hInst; // current instance
+
+[Platform::MTAThread]
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+                     _In_opt_ HINSTANCE hPrevInstance,
+                     _In_ LPWSTR    lpCmdLine,
+                     _In_ int       nCmdShow)
+{
+    UNREFERENCED_PARAMETER(hPrevInstance);
+    UNREFERENCED_PARAMETER(lpCmdLine);
+
+    // TODO: Place code here.
+	hInst = hInstance; // Store instance handle in our global variable
+
+	SystemControl sc;
+	int result = sc.Run();
+	return result;
+}
+```
+
+* We are going to add a class called SystemControl to contain the logic of the Desktop Extension. Add a class called SystemControl to your project. 
+Stub in the following public method in SystemControl.h and .cpp
+
+	int  Run();
+
+### Adding UWP Support to the Desktop Extension
+
+We need to add a few settings so our Desktop Extension can call UWP methods. Please do the following:
+
+* Right-click on the SystemControlDesktopExtension project and select Properties. Make sure All Configurations and All Platforms are selected.
+
+* Select C/C++ | General and add the following settings
+
+    * Set Additional #using Directories to $(VC_ReferencesPath_x86)\store\references;C:\Program Files (x86)\Windows Kits\10\UnionMetadata;C:\Program Files (x86)\Windows Kits\10\References\Windows.Foundation.UniversalApiContract\3.0.0.0;C:\Program Files (x86)\Windows Kits\10\References\Windows.Foundation.FoundationContract\3.0.0.0;%(AdditionalUsingDirectories)
+    
+    * Set Consume Windows Runtime Extension to Yes/(ZW)
+    
+    * Add /Zc:twoPhase-  to the C/C++ | Commannd line
+    
+    * Set C/C++ Precompiled Headers to Not Using Precompiled Headers
+    
+    * Set Configuration Properties | General | Output Directory to $(SolutionDir)$(PlatformTarget)\$(Configuration)\
+
+* Try to build the solution. All projects should build without an error.
