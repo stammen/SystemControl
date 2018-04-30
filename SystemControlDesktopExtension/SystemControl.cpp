@@ -1,7 +1,6 @@
 #include "SystemControl.h"
 #include "Brightness.h"
 #include "SystemVolume.h"
-#include <iostream>
 #include <string>
 #include <sstream>     
 #include <functional>

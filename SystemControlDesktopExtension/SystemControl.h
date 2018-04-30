@@ -28,5 +28,4 @@ private:
 	Windows::ApplicationModel::AppService::AppServiceConnection^ m_appService;
 	bool m_quitting;
 	bool m_appServiceConnected;
-
 };
