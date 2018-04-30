@@ -1,15 +1,6 @@
-//*********************************************************
-//
-// Copyright (c) Microsoft. All rights reserved.
-// THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-// IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-// PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-//
-//*********************************************************
-
 #include "SystemControl.h"
 #include "Brightness.h"
+#include "SystemVolume.h"
 #include <iostream>
 #include <string>
 #include <sstream>     
@@ -117,6 +108,22 @@ void SystemControl::OnRequestReceived(AppServiceConnection^ sender, AppServiceRe
 			{
 				std::wstringstream errorMessage;
 				errorMessage << L"SetBrightness error: " << hr;
+				response->Insert("Error", ref new Platform::String(errorMessage.str().c_str()));
+			}
+		}
+
+		if (message == "SystemVolume")
+		{
+			double value = static_cast<double>(request->Lookup("Value"));
+			HRESULT hr = SystemVolume::SetSystemVolume(value);
+			if (SUCCEEDED(hr))
+			{
+				response->Insert("Status", "OK");
+			}
+			else
+			{
+				std::wstringstream errorMessage;
+				errorMessage << L"SystemVolume error: " << hr;
 				response->Insert("Error", ref new Platform::String(errorMessage.str().c_str()));
 			}
 		}

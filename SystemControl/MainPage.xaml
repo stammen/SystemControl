@@ -11,6 +11,8 @@
         <StackPanel Orientation="Vertical" Margin="10">
             <TextBlock Text="Brightness" />
             <Slider x:Name="brightnessSlider" ValueChanged="BrightnessSlider_ValueChanged" />
+            <TextBlock Text="System Volume" />
+            <Slider x:Name="systemVolumeSlider" ValueChanged="SystemVolumeSlider_ValueChanged" />
         </StackPanel>
     </Grid>
 </Page>

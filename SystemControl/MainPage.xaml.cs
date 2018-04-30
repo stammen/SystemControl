@@ -61,5 +61,14 @@ namespace SystemControl
             var app = App.Current as App;
             var result = app.SendMessage(message);
         }
+
+        private void SystemVolumeSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            ValueSet message = new ValueSet();
+            message.Add("Message", "SystemVolume");
+            message.Add("Value", e.NewValue);
+            var app = App.Current as App;
+            var result = app.SendMessage(message);
+        }
     }
 }
