@@ -435,7 +435,7 @@ We will use the UWP Method FullTrustProcessLauncher to launch the Desktop Extens
 
 * Add the following methods to MainPage.xaml.cs
 
-```xml
+```csharp
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.Foundation.Metadata;
@@ -452,7 +452,7 @@ private async Task LaunchDesktopExtension()
         await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
     }
 }
-```xml
+```
 
 In order to debug the Desktop Extension, edit the Debugging Properties of the UWP Project.
 
@@ -470,12 +470,14 @@ We will now send a message to the Desktop Extension. Add a button to MainPage.xa
 
 * In MainPage.xaml add
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <StackPanel Orientation="Vertical" Margin="10">
-            <Button Click="Button_Click" Content="Send Message" />
-            <TextBlock x:Name="resultText" Margin="10, 10"/>
-        </StackPanel>
-    </Grid>
+```xml
+<Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <StackPanel Orientation="Vertical" Margin="10">
+        <Button Click="Button_Click" Content="Send Message" />
+        <TextBlock x:Name="resultText" Margin="10, 10"/>
+    </StackPanel>
+</Grid>
+```
 
  * In MainPage.xaml.cs add the following method:
  
