@@ -135,8 +135,6 @@ namespace SystemControl
             messageDeferral.Complete();
         }
 
-
-
         private void OnAppServicesCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
         {
             _appServiceDeferral.Complete();

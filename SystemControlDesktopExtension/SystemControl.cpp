@@ -35,11 +35,15 @@ void SystemControl::SystemControlThread()
 	try
 	{
 		auto task = ConnectToAppService(L"com.stammen.systemcontrol.appservice", Windows::ApplicationModel::Package::Current->Id->FamilyName);
-		task.get(); // blocks until Connection task completes
+		auto result = task.get(); // blocks until Connection task completes
 
-		while (!m_quitting)
+		if (result == AppServiceConnectionStatus::Success)
 		{
-
+			// keep running until it is time to exit
+			while (!m_quitting)
+			{
+				Sleep(1000);
+			}
 		}
 	}
 	catch (Platform::Exception^ ex)
@@ -111,8 +115,7 @@ void SystemControl::OnRequestReceived(AppServiceConnection^ sender, AppServiceRe
 				response->Insert("Error", ref new Platform::String(errorMessage.str().c_str()));
 			}
 		}
-
-		if (message == "SystemVolume")
+		else if (message == "SystemVolume")
 		{
 			double value = static_cast<double>(request->Lookup("Value"));
 			HRESULT hr = SystemVolume::SetSystemVolume(value);
@@ -126,6 +129,11 @@ void SystemControl::OnRequestReceived(AppServiceConnection^ sender, AppServiceRe
 				errorMessage << L"SystemVolume error: " << hr;
 				response->Insert("Error", ref new Platform::String(errorMessage.str().c_str()));
 			}
+		}
+		else if (message == "Quit")
+		{
+			m_quitting = true;
+			response->Insert("Status", "OK");
 		}
 	}
 	else
