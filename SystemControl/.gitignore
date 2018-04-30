@@ -1,0 +1,20 @@
+grpc/
+googleapis/
+googleapis/grpc/
+uwp/build/
+.vs/
+x64/
+ARM/
+Generated Files/
+AppPackages/
+BundleArtifacts/
+credentials.json
+grpc.zip
+bin/
+x86/
+Debug/
+Release/
+obj/
+Debug/
+*.cache
+*.user

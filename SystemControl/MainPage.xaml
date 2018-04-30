@@ -1,0 +1,16 @@
+﻿<Page
+    x:Class="SystemControl.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:SystemControl"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <StackPanel Orientation="Vertical" Margin="10">
+            <TextBlock Text="Brightness" />
+            <Slider x:Name="brightnessSlider" ValueChanged="BrightnessSlider_ValueChanged" />
+        </StackPanel>
+    </Grid>
+</Page>
