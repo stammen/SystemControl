@@ -11,6 +11,7 @@
 #include "Applications.h"
 #include <collection.h>
 #include <windows.h>
+#include <atlbase.h>
 #include <Shellapi.h>
 #include <shlobj.h>
 #include <shlwapi.h>
@@ -74,8 +75,25 @@ HRESULT LaunchApp(LPWSTR path)
     }
     else
     {
-        HINSTANCE result = ShellExecute(NULL, NULL, L"\"C:\\Windows\\explorer.exe\"", wPath.c_str(), NULL, SW_SHOWNORMAL);
-
+        //HINSTANCE result = ShellExecute(NULL, NULL, L"\"C:\\Windows\\explorer.exe\"", wPath.c_str(), NULL, SW_SHOWNORMAL);
+        CComPtr<IApplicationActivationManager> AppActivationMgr = nullptr;
+        if (SUCCEEDED(hr))
+        {
+            hr = CoCreateInstance(CLSID_ApplicationActivationManager, nullptr, CLSCTX_LOCAL_SERVER, IID_PPV_ARGS(&AppActivationMgr));
+            if (FAILED(hr))
+            {
+                //OutputDebugString(L"LaunchApp %s: Failed to create Application Activation Manager. hr = 0x%08lx \n", wPath.c_str(), hr);
+            }
+        }
+        if (SUCCEEDED(hr))
+        {
+            DWORD pid = 0;
+            hr = AppActivationMgr->ActivateApplication(wPath.c_str(), nullptr, AO_NONE, &pid);
+            if (FAILED(hr))
+            {
+                //OutputDebugString(L"LaunchApp %s: Failed to Activate App. hr = 0x%08lx \n", wPath.c_str(), hr);
+            }
+        }
     }
 
 
