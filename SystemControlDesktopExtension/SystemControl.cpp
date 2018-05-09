@@ -1,3 +1,4 @@
+#include "Applications.h"
 #include "SystemControl.h"
 #include "Brightness.h"
 #include "SystemVolume.h"
@@ -94,7 +95,7 @@ void SystemControl::OnRequestReceived(AppServiceConnection^ sender, AppServiceRe
     // and we don't want this call to get cancelled while we are waiting.
     auto messageDeferral = args->GetDeferral();
     auto request = args->Request->Message;
-    ValueSet^ response = HandleRequest(request);
+    auto response = ref new ValueSet();
 
     if (request->HasKey("Message"))
     {
@@ -129,6 +130,15 @@ void SystemControl::OnRequestReceived(AppServiceConnection^ sender, AppServiceRe
                 response->Insert("Error", ref new Platform::String(errorMessage.str().c_str()));
             }
         }
+        else if (message == "GetApplications")
+        {
+            response = Applications::GetApplications();
+        }
+        else if (message == "LaunchApplication")
+        {
+            Platform::String^ name = dynamic_cast<Platform::String^>(request->Lookup("Name"));
+            response = Applications::LaunchApplication(name);
+        }
         else if (message == "Quit")
         {
             m_quitting = true;
@@ -144,13 +154,6 @@ void SystemControl::OnRequestReceived(AppServiceConnection^ sender, AppServiceRe
     {
         messageDeferral->Complete();
     });
-}
-
-ValueSet^ SystemControl::HandleRequest(ValueSet^ message)
-{
-    ValueSet^ response = ref new ValueSet();
-
-    return response;
 }
 
 

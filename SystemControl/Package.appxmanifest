@@ -42,17 +42,10 @@
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
-      <Extensions>
-        <uap:Extension Category="windows.appService">
-          <uap:AppService Name="com.stammen.systemcontrol.appservice" />
-        </uap:Extension>
-        <desktop:Extension Category="windows.fullTrustProcess" Executable="DesktopExtensions/SystemControlDesktopExtension.exe" />
-      </Extensions>
     </Application>
   </Applications>
 
   <Capabilities>
     <Capability Name="internetClient" />
-    <rescap:Capability Name="runFullTrust" />
   </Capabilities>
 </Package>

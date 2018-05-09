@@ -13,6 +13,12 @@
             <Slider x:Name="brightnessSlider" ValueChanged="BrightnessSlider_ValueChanged" />
             <TextBlock Text="System Volume" />
             <Slider x:Name="systemVolumeSlider" ValueChanged="SystemVolumeSlider_ValueChanged" />
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="getApplications" Content="Get Applications" Click="GetApplications_Click"/>
+                <ComboBox x:Name="applicationsComboBox" SelectionChanged="ComboBox_SelectionChanged" Margin="10">
+                    <ComboBoxItem IsSelected="True">N/A</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </Page>
