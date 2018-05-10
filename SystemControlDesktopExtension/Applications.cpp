@@ -19,6 +19,7 @@
 #include <propkey.h>
 #include <ppltasks.h>
 #include <string>
+#include <vector>
 
 using namespace Windows::Foundation::Collections;
 using namespace Platform::Collections;
@@ -102,30 +103,37 @@ HRESULT LaunchApp(LPWSTR path)
     HRESULT hr = S_OK;
 
     std::wstring wPath(path);
-    std::wstring guid(L"{7C5A40EF-A0FB-4BFC-874A-C0F2E0B9FA8E}");
+    std::vector<std::wstring> tokens;
 
-    UUID uuid;
-    std::wstring guidString = wPath.substr(1, 36) ;
-
-    auto ok = UuidFromString((RPC_WSTR)guidString.c_str(), &uuid);
-    PWSTR pszPath = NULL;
-    hr = SHGetKnownFolderPath(uuid, 0, NULL, &pszPath);
-
-
-    if (wPath.compare(0, guid.length(), guid) == 0)
+    std::wstring delimiters = L"{}";
+    size_t current;
+    size_t next = -1;
+    do
     {
-        PWSTR pszPath = NULL;
+        current = next + 1;
+        next = wPath.find_first_of(delimiters, current);
+        tokens.push_back(wPath.substr(current, next - current));
+    } while (next != std::string::npos);
 
-        // Method 1: SHGetKnownFolderPath (The function is new in Windows Vista)
-        hr = SHGetKnownFolderPath(FOLDERID_ProgramFilesX86, 0, NULL, &pszPath);
-        if (SUCCEEDED(hr))
+    // check if path started with a Known Folder GUID
+    if (tokens.size() > 1)
+    {
+        UUID uuid;
+        auto ok = UuidFromString((RPC_WSTR)tokens[1].c_str(), &uuid);
+        if (ok == RPC_S_OK)
         {
-            wPath.replace(0, guid.length(), pszPath);
-            HINSTANCE result = ShellExecute(NULL, NULL, wPath.c_str(), L"", NULL, SW_SHOWNORMAL);
-            OutputDebugString(wPath.c_str());
-            // The calling application is responsible for calling CoTaskMemFree 
-            // to free this resource after use.
-            CoTaskMemFree(pszPath);
+            PWSTR pszPath = NULL;
+            hr = SHGetKnownFolderPath(uuid, 0, NULL, &pszPath);
+            if (SUCCEEDED(hr))
+            {
+                std::wstring finalPath = pszPath;
+                finalPath.append(tokens[2]);
+                HINSTANCE result = ShellExecute(NULL, NULL, finalPath.c_str(), L"", NULL, SW_SHOWNORMAL);
+                OutputDebugString(finalPath.c_str());
+                // The calling application is responsible for calling CoTaskMemFree 
+                // to free this resource after use.
+                CoTaskMemFree(pszPath);
+            }
         }
     }
     else
