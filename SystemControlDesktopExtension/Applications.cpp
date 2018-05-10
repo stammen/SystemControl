@@ -21,45 +21,55 @@
 #include <string>
 #include <vector>
 
+using namespace Windows::Storage;
 using namespace Windows::Foundation::Collections;
 using namespace Platform::Collections;
 
 std::mutex Applications::s_mutex;
 
-HRESULT CreateLink(LPCWSTR lpszPathObj, LPCSTR lpszPathLink, LPCWSTR lpszDesc)
+HRESULT CreateLink(IShellItem* psi, LPCSTR lpszPathLink, LPCWSTR lpszDesc)
 {
-    HRESULT hres;
+    HRESULT hr;
     IShellLink* psl;
+
+    StorageFolder^ localFolder = ApplicationData::Current->LocalFolder;
+    Platform::String^ path = localFolder->Path + L"\\shortcut.lnk";
 
     // Get a pointer to the IShellLink interface. It is assumed that CoInitialize
     // has already been called.
-    hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
-    if (SUCCEEDED(hres))
+    hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+    if (SUCCEEDED(hr))
     {
-        IPersistFile* ppf;
+        IPersistFile* ppf = nullptr;
 
-        // Set the path to the shortcut target and add the description. 
-        psl->SetPath(lpszPathObj);
-        psl->SetDescription(lpszDesc);
+        PIDLIST_ABSOLUTE pidl;
+
+        hr= SHGetIDListFromObject(psi, &pidl);
+        if (SUCCEEDED(hr))
+        {
+            hr = psl->SetIDList(pidl);
+            CoTaskMemFree(pidl);
+        }
 
         // Query IShellLink for the IPersistFile interface, used for saving the 
         // shortcut in persistent storage. 
-        hres = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
-
-        if (SUCCEEDED(hres))
+        if (SUCCEEDED(hr))
         {
-            WCHAR wsz[MAX_PATH];
-
-            // Ensure that the string is Unicode. 
-            MultiByteToWideChar(CP_ACP, 0, lpszPathLink, -1, wsz, MAX_PATH);
-
-            // Save the link by calling IPersistFile::Save. 
-            hres = ppf->Save(wsz, TRUE);
-            ppf->Release();
+            hr = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
+            if (SUCCEEDED(hr))
+            {
+                // Save the link by calling IPersistFile::Save. 
+                hr = ppf->Save(path->Data(), TRUE);
+                ppf->Release();
+                if (SUCCEEDED(hr))
+                {
+                    HINSTANCE result = ShellExecute(NULL, NULL, path->Data(), L"", NULL, SW_SHOWNORMAL);
+                }
+            }
         }
         psl->Release();
     }
-    return hres;
+    return hr;
 }
 
 HRESULT BindToCsidlItem(int csidl, IShellItem ** ppsi)
@@ -98,7 +108,7 @@ void PrintDetail(IShellItem2 *psi2, const SHCOLUMNID *pscid, PCTSTR pszLabel)
     }
 }
 
-HRESULT LaunchApp(LPWSTR path)
+HRESULT LaunchApp(LPWSTR path, IShellItem* psi)
 {
     HRESULT hr = S_OK;
 
@@ -136,7 +146,7 @@ HRESULT LaunchApp(LPWSTR path)
             }
         }
     }
-    else
+    else // try to launch path as a UWP App
     {
         CComPtr<IApplicationActivationManager> AppActivationMgr = nullptr;
         if (SUCCEEDED(hr))
@@ -153,11 +163,11 @@ HRESULT LaunchApp(LPWSTR path)
             hr = AppActivationMgr->ActivateApplication(wPath.c_str(), nullptr, AO_NONE, &pid);
             if (FAILED(hr))
             {
-                //OutputDebugString(L"LaunchApp %s: Failed to Activate App. hr = 0x%08lx \n", wPath.c_str(), hr);
+                // make a shortcut for the iten and try to open it (for example needed to open Word
+                hr = CreateLink(psi, "D:\\shortcut.lnk", L"test shortcut");
             }
         }
     }
-
 
     return hr;
 }
@@ -197,7 +207,7 @@ Windows::Foundation::Collections::ValueSet^ Applications::LaunchApplication(Plat
                             HRESULT hr = psi2->GetString(PKEY_ParsingPath, &path);
                             if (SUCCEEDED(hr))
                             {
-                                LaunchApp(path);
+                                LaunchApp(path, psi);
                                 OutputDebugString(path);
                                 CoTaskMemFree(path);
                             }

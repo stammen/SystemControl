@@ -96,7 +96,7 @@ namespace SystemControl
                 {
                     var applications = result["Applications"] as string[];
                     applicationsComboBox.Items.Clear();
-                    applicationsComboBox.Items.Add("N/A");
+                    applicationsComboBox.Items.Add("Applications");
                     applicationsComboBox.SelectedIndex = 0;
 
                     foreach (var s in applications)
