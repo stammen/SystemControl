@@ -12,6 +12,7 @@
 #include <collection.h>
 #include <windows.h>
 #include <atlbase.h>
+#include <rpc.h>
 #include <Shellapi.h>
 #include <shlobj.h>
 #include <shlwapi.h>
@@ -23,6 +24,42 @@ using namespace Windows::Foundation::Collections;
 using namespace Platform::Collections;
 
 std::mutex Applications::s_mutex;
+
+HRESULT CreateLink(LPCWSTR lpszPathObj, LPCSTR lpszPathLink, LPCWSTR lpszDesc)
+{
+    HRESULT hres;
+    IShellLink* psl;
+
+    // Get a pointer to the IShellLink interface. It is assumed that CoInitialize
+    // has already been called.
+    hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+    if (SUCCEEDED(hres))
+    {
+        IPersistFile* ppf;
+
+        // Set the path to the shortcut target and add the description. 
+        psl->SetPath(lpszPathObj);
+        psl->SetDescription(lpszDesc);
+
+        // Query IShellLink for the IPersistFile interface, used for saving the 
+        // shortcut in persistent storage. 
+        hres = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
+
+        if (SUCCEEDED(hres))
+        {
+            WCHAR wsz[MAX_PATH];
+
+            // Ensure that the string is Unicode. 
+            MultiByteToWideChar(CP_ACP, 0, lpszPathLink, -1, wsz, MAX_PATH);
+
+            // Save the link by calling IPersistFile::Save. 
+            hres = ppf->Save(wsz, TRUE);
+            ppf->Release();
+        }
+        psl->Release();
+    }
+    return hres;
+}
 
 HRESULT BindToCsidlItem(int csidl, IShellItem ** ppsi)
 {
@@ -67,15 +104,32 @@ HRESULT LaunchApp(LPWSTR path)
     std::wstring wPath(path);
     std::wstring guid(L"{7C5A40EF-A0FB-4BFC-874A-C0F2E0B9FA8E}");
 
+    UUID uuid;
+    std::wstring guidString = wPath.substr(1, 36) ;
+
+    auto ok = UuidFromString((RPC_WSTR)guidString.c_str(), &uuid);
+    PWSTR pszPath = NULL;
+    hr = SHGetKnownFolderPath(uuid, 0, NULL, &pszPath);
+
+
     if (wPath.compare(0, guid.length(), guid) == 0)
     {
-        wPath.replace(0, guid.length(), L"C:\\Program Files (x86)");
-        HINSTANCE result = ShellExecute(NULL, NULL, wPath.c_str(), L"", NULL, SW_SHOWNORMAL);
-        OutputDebugString(wPath.c_str());
+        PWSTR pszPath = NULL;
+
+        // Method 1: SHGetKnownFolderPath (The function is new in Windows Vista)
+        hr = SHGetKnownFolderPath(FOLDERID_ProgramFilesX86, 0, NULL, &pszPath);
+        if (SUCCEEDED(hr))
+        {
+            wPath.replace(0, guid.length(), pszPath);
+            HINSTANCE result = ShellExecute(NULL, NULL, wPath.c_str(), L"", NULL, SW_SHOWNORMAL);
+            OutputDebugString(wPath.c_str());
+            // The calling application is responsible for calling CoTaskMemFree 
+            // to free this resource after use.
+            CoTaskMemFree(pszPath);
+        }
     }
     else
     {
-        //HINSTANCE result = ShellExecute(NULL, NULL, L"\"C:\\Windows\\explorer.exe\"", wPath.c_str(), NULL, SW_SHOWNORMAL);
         CComPtr<IApplicationActivationManager> AppActivationMgr = nullptr;
         if (SUCCEEDED(hr))
         {
@@ -122,11 +176,15 @@ Windows::Foundation::Collections::ValueSet^ Applications::LaunchApplication(Plat
                     auto appName = GetDisplayName(psi2, SIGDN_NORMALDISPLAY);
                     if (!appName->IsEmpty())
                     {
-
                         if (appName == name)
                         {
                             OutputDebugString(appName->Data());
                             
+                            PWSTR pszFilePath = NULL;
+                            hr = psi->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+                            CoTaskMemFree(pszFilePath);
+
+
                             LPWSTR path;
                             HRESULT hr = psi2->GetString(PKEY_ParsingPath, &path);
                             if (SUCCEEDED(hr))
