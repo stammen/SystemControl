@@ -28,11 +28,11 @@ HRESULT LaunchAppFromShortCut(IShellItem* psi)
     HRESULT hr;
     IShellLink* psl;
 
-    StorageFolder^ localFolder = ApplicationData::Current->LocalFolder;
+    // save the shortcut file to the app's temporary folder as we are only going to use it once
+    StorageFolder^ localFolder = ApplicationData::Current->TemporaryFolder;
     Platform::String^ path = localFolder->Path + L"\\shortcut.lnk";
 
-    // Get a pointer to the IShellLink interface. It is assumed that CoInitialize
-    // has already been called.
+    // Get a pointer to the IShellLink interface. 
     hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
     if (SUCCEEDED(hr))
     {
@@ -43,6 +43,7 @@ HRESULT LaunchAppFromShortCut(IShellItem* psi)
         hr= SHGetIDListFromObject(psi, &pidl);
         if (SUCCEEDED(hr))
         {
+            // set the shortcut info for this app
             hr = psl->SetIDList(pidl);
             CoTaskMemFree(pidl);
         }
@@ -59,7 +60,20 @@ HRESULT LaunchAppFromShortCut(IShellItem* psi)
                 ppf->Release();
                 if (SUCCEEDED(hr))
                 {
-                    HINSTANCE result = ShellExecute(NULL, NULL, path->Data(), L"", NULL, SW_SHOWNORMAL);
+                    // launch the app using its newly created shortcut
+                    HINSTANCE hInstance = ShellExecute(NULL, NULL, path->Data(), L"", NULL, SW_SHOWNORMAL);
+#pragma warning (disable: 4302 4311)
+                    int result = (int)hInstance;
+#pragma warning  (default: 4302 4311)  
+
+                    if (result >= 32)
+                    {
+                        hr = S_OK;
+                    }
+                    else
+                    {
+                        hr = result;
+                    }
                 }
             }
         }
