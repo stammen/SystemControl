@@ -36,7 +36,6 @@ HRESULT LaunchUWPApp(LPCWSTR aumid)
     return hr;
 }
 
-
 HRESULT LaunchAppFromShortCut(IShellItem* psi)
 {
     HRESULT hr;
@@ -120,7 +119,6 @@ Platform::String^ GetParsingPath(IShellItem2  *psi2)
     }
     return result;
 }
-
 
 Windows::Foundation::Collections::ValueSet^ Applications::LaunchApplication(Platform::String^ name)
 {
