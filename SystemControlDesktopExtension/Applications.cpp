@@ -11,6 +11,7 @@
 #include "Applications.h"
 #include <collection.h>
 #include <windows.h>
+#include <atlbase.h>
 #include <Shellapi.h>
 #include <shlobj.h>
 #include <propkey.h>
@@ -22,6 +23,19 @@ using namespace Windows::Foundation::Collections;
 using namespace Platform::Collections;
 
 std::mutex Applications::s_mutex;
+
+HRESULT LaunchUWPApp(LPCWSTR aumid)
+{
+    CComPtr<IApplicationActivationManager> AppActivationMgr = nullptr;
+    HRESULT hr = CoCreateInstance(CLSID_ApplicationActivationManager, nullptr, CLSCTX_LOCAL_SERVER, IID_PPV_ARGS(&AppActivationMgr));
+    if (SUCCEEDED(hr))
+    {
+        DWORD pid = 0;
+        hr = AppActivationMgr->ActivateApplication(aumid, nullptr, AO_NONE, &pid);
+    }
+    return hr;
+}
+
 
 HRESULT LaunchAppFromShortCut(IShellItem* psi)
 {
@@ -95,6 +109,19 @@ Platform::String^ GetDisplayName(IShellItem *psi, SIGDN sigdn)
     return result;
 }
 
+Platform::String^ GetParsingPath(IShellItem2  *psi2)
+{
+    LPWSTR pszValue;
+    Platform::String^ result = ref new Platform::String();
+    HRESULT hr = psi2->GetString(PKEY_ParsingPath, &pszValue);
+    if (SUCCEEDED(hr)) {
+        result = ref new Platform::String(pszValue);
+        CoTaskMemFree(pszValue);
+    }
+    return result;
+}
+
+
 Windows::Foundation::Collections::ValueSet^ Applications::LaunchApplication(Platform::String^ name)
 {
     ValueSet^ result = ref new ValueSet;
@@ -119,8 +146,13 @@ Windows::Foundation::Collections::ValueSet^ Applications::LaunchApplication(Plat
                     {
                         if (appName == name)
                         {
-                            hr = LaunchAppFromShortCut(psi);
                             found = true;
+                            hr = LaunchAppFromShortCut(psi);
+                            if (hr != S_OK) // We may be on Windows 10S. We can only launch UWP apps
+                            {
+                                auto aumid = GetParsingPath(psi2);
+                                hr = LaunchUWPApp(aumid->Data());
+                            }
                         }
                     }
                     psi2->Release();
