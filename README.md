@@ -1,6 +1,10 @@
 # Win32 System Control from a UWP App Sample
 
-This sample demonstrates how a UWP application can call Win32 methods unavailable to a UWP application to control monitor brightness and global system volume. 
+This sample demonstrates how a UWP application can call Win32 methods unavailable to a UWP application to control the following: 
+* monitor brightness
+* global system volume
+* enumerate applications installed on the user's system and selectively launch an application
+
 The example uses a Win32 Desktop Extension and an AppService.
 
 Note: This example will only work in Desktop scenarios
@@ -8,7 +12,7 @@ Note: This example will only work in Desktop scenarios
 ## Requirements
 
 * Visual Studio 2017 with Windows Universal App Development package installed
-* Windows SDK version 17025 (installed with Visual Studio 2017) or minimum SDK version 15063
+* Windows SDK version 17134 (installed with Visual Studio 2017) or minimum SDK version 15063
 
 ## Running the Sample
 
@@ -16,7 +20,7 @@ Note: This example will only work in Desktop scenarios
 
 * Select the Debug/x86 or Debug/x64 configuration. (Release/x86 and Release x/64 also work)
 
-* Set the SystemControl project as the StartUp project
+* Set the PackageProject project as the StartUp project
 
 * Press F5 to build and run the solution. 
 
@@ -24,6 +28,8 @@ Note: This example will only work in Desktop scenarios
 * Move the Brightness slider to change the Monitor brightness (note: setting monitor brightness is a very slow operation so moving the slider will take a while to get to the brightness setting.)
 
 * Move the System Volume slider to change the global system volume.
+
+* Click on the Get Applications Button. The combobox will be filled with all of the user's applications. Select an application from the combobox to launch the application.
 
 
 ##  Setup Instructions
@@ -83,7 +89,7 @@ We need to add a few settings so our Desktop Extension can call UWP methods. Ple
 
 * Select C/C++ | General and add the following settings
 
-    * Set Additional #using Directories to $(VC_ReferencesPath_x86)\store\references;C:\Program Files (x86)\Windows Kits\10\UnionMetadata;C:\Program Files (x86)\Windows Kits\10\References\Windows.Foundation.UniversalApiContract\3.0.0.0;C:\Program Files (x86)\Windows Kits\10\References\Windows.Foundation.FoundationContract\3.0.0.0;%(AdditionalUsingDirectories)
+    * Set Additional #using Directories to $(VC_LibraryPath_VC_x86_Store)\references\;C:\Program Files (x86)\Windows Kits\10\UnionMetadata\$(TargetPlatformVersion);C:\Program Files (x86)\Windows Kits\10\UnionMetadata;C:\Program Files (x86)\Windows Kits\10\References\Windows.Foundation.UniversalApiContract\3.0.0.0;C:\Program Files (x86)\Windows Kits\10\References\Windows.Foundation.FoundationContract\3.0.0.0;%(AdditionalUsingDirectories)
     
     * Set Consume Windows Runtime Extension to Yes/(ZW)
     
@@ -100,89 +106,6 @@ We need to add a few settings so our Desktop Extension can call UWP methods. Ple
 In order for the UWP App to be able to communicate with the Desktop Extension, we will use an [AppService](https://docs.microsoft.com/en-us/windows/uwp/launch-resume/convert-app-service-in-process)
 to send messages between the two processes.
 
-* In the UWP project, right-click on the file Package.appxmanifest and select View Code
-
-* Modify the Package tag to the following:
-
-```xml
-<Package
-  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
-  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
-  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
-  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10" 
-  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" 
-  IgnorableNamespaces="uap mp desktop rescap">
-```
-
-* Add the AppService and Desktop Extension to the Application section
-
-```xml
-  <Extensions>
-    <uap:Extension Category="windows.appService">
-      <uap:AppService Name="com.stammen.systemcontrol.appservice" />
-    </uap:Extension>
-    <desktop:Extension Category="windows.fullTrustProcess" Executable="DesktopExtensions/SystemControlDesktopExtension.exe" />
-  </Extensions>
-```
-
-* Your Application section should now look something like this:
-
-```xml
-    <Application Id="App"
-      Executable="$targetnametoken$.exe"
-      EntryPoint="SystemControl.App">
-      <uap:VisualElements
-        DisplayName="SystemControl"
-        Square150x150Logo="Assets\Square150x150Logo.png"
-        Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="SystemControl"
-        BackgroundColor="transparent">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
-        <uap:SplashScreen Image="Assets\SplashScreen.png" />
-      </uap:VisualElements>
-      <Extensions>
-        <uap:Extension Category="windows.appService">
-          <uap:AppService Name="com.stammen.systemcontrol.appservice" />
-        </uap:Extension>
-        <desktop:Extension Category="windows.fullTrustProcess" Executable="DesktopExtensions/SystemControlDesktopExtension.exe" />
-      </Extensions>
-    </Application>
-```
-
-Note: change com.stammen.systemcontrol.appservice to a name that makes sense for your app!
-
-* Add the following Capability to the Capabilities section
-
-```xml
-  <Capabilities>
-    <Capability Name="internetClient" />
-    <rescap:Capability Name="runFullTrust" />
-  </Capabilities>
-```
-
-* Right-click on your UWP project and select Unload Project
-
-* Right-click on your UWP project and select Edit Project
-
-* Add the following xml near the bottom of the xml
-
-```xml
-  <ItemGroup Label="DesktopExtensions">
-    <Content Include="$(SolutionDir)\$(Platform)\$(Configuration)\SystemControlDesktopExtension.exe">
-      <Link>DesktopExtensions\SystemControlDesktopExtension.exe</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(SolutionDir)\$(Platform)\$(Configuration)\SystemControlDesktopExtension.pdb">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
- ```
- 
-* Right-click on your UWP project and select Reload Project
-
-* This xml will automatically add the SystemControlDesktopExtension.exe to the correct location in your AppX.
-
-* Build and run the project. There should be no errors.
 
 We will now add the code for the AppService to the UWP project.
 
@@ -422,6 +345,104 @@ Note: change com.stammen.systemcontrol.appservice to the name you specified in y
 
 This code will keep the Desktop Extension running until it is told to quit or the connection to the AppService is closed. 
 
+### Add a Packaging Project to Package the Win32 .exe with the UWP App
+
+We will use a Packaging Project to Package the Win32 .exe with the UWP App. The Packaging Project will add both the Win32 .exe and the UWP App to the AppX package.
+Add a Packaging Project to your solution.
+
+* Right-click on the Solution and select Add | New Project...
+
+* Select Visual C# | Windows Universal  | Windows Application Packaging Project
+
+* Name the project PackageProject and click OK
+
+* Set PackageProject as the Startup Project
+
+* In the PackageProject right click on Applications and select Add Reference
+
+* Select both the UWP Project and the Win32 project 
+
+* Expand the Applications folder and right-click on the UWP project. Select Set as EntryPoint.
+
+* Right-click on the Package.appxmanifest file in the PackageProject. Select View Code.
+
+* Replace all instances of PackageProject with the name of your App. (It this example it is SystemControl)
+
+* Modify the Package section to add the Desktop xmlns attribute
+
+```xml
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10" 
+  IgnorableNamespaces="uap mp rescap desktop">
+ ```
+
+* Add the Desktop Extension to the Application Section
+
+```xml
+  <Applications>
+    <Application Id="App"
+      Executable="$targetnametoken$.exe"
+      EntryPoint="$targetentrypoint$">
+      <uap:VisualElements
+        DisplayName="SystemControl"
+        Description="SystemControl"
+        BackgroundColor="transparent"
+        Square150x150Logo="Images\Square150x150Logo.png"
+        Square44x44Logo="Images\Square44x44Logo.png">
+        <uap:DefaultTile
+          Wide310x150Logo="Images\Wide310x150Logo.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <desktop:Extension Category="windows.fullTrustProcess" Executable="SystemControlDesktopExtension/SystemControlDesktopExtension.exe" />
+      </Extensions>
+    </Application>
+  </Applications>
+ ```
+ 
+* Add the AppService to the Application section
+
+```xml
+  <Extensions>
+    <uap:Extension Category="windows.appService">
+      <uap:AppService Name="com.stammen.systemcontrol.appservice" />
+    </uap:Extension>
+  </Extensions>
+```
+
+* Your Application section should now look something like this:
+
+```xml
+  <Applications>
+    <Application Id="App"
+      Executable="$targetnametoken$.exe"
+      EntryPoint="$targetentrypoint$">
+      <uap:VisualElements
+        DisplayName="SystemControl"
+        Description="SystemControl"
+        BackgroundColor="transparent"
+        Square150x150Logo="Images\Square150x150Logo.png"
+        Square44x44Logo="Images\Square44x44Logo.png">
+        <uap:DefaultTile
+          Wide310x150Logo="Images\Wide310x150Logo.png" />
+      </uap:VisualElements>
+      <Extensions>
+          <uap:Extension Category="windows.appService">
+            <uap:AppService Name="com.stammen.systemcontrol.appservice" />
+          </uap:Extension>
+        <desktop:Extension Category="windows.fullTrustProcess" Executable="SystemControlDesktopExtension/SystemControlDesktopExtension.exe" />
+      </Extensions>
+    </Application>
+  </Applications>
+```
+
+Note: change com.stammen.systemcontrol.appservice to a name that makes sense for your app!
+
+The Packaging Project is now configured to correctly build your application.
+
 
 ### Modify the UWP app to launch the Desktop Extension
 
@@ -473,18 +494,18 @@ We will now send a message to the Desktop Extension. Add a button to MainPage.xa
 * In MainPage.xaml add
 
 ```xml
-<Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-    <StackPanel Orientation="Vertical" Margin="10">
-        <Button Click="Button_Click" Content="Send Message" />
-        <TextBlock x:Name="resultText" Margin="10, 10"/>
-    </StackPanel>
+<Grid>
+	<StackPanel Orientation="Vertical" Margin="10">
+		<Button Click="Button_Click" Content="Send Message" />
+		<TextBlock x:Name="resultText" Margin="10, 10"/>
+	</StackPanel>
 </Grid>
 ```
 
  * In MainPage.xaml.cs add the following method:
  
  ```csharp
- private async void Button_Click(object sender, RoutedEventArgs e)
+private async void Button_Click(object sender, RoutedEventArgs e)
 {
     ValueSet message = new ValueSet();
     message.Add("Message", "Hello");
@@ -504,7 +525,10 @@ We will now send a message to the Desktop Extension. Add a button to MainPage.xa
 
 * Build and run the app. You should be able to send to and receive a message from the Desktop Extension via the AppService.
 
+Note: The Title Bar of your App may be Black. We will update these instructions with a fix for this.
+
+
 ### Adding Win32 API Functions to the Desktop Extension
 
-Take a look at SystemControl.cpp, SystemVolume.cpp, Brightness.cpp in this repo for how you can add Win32 API function via the AppService and Desktop Extension
+Take a look at SystemControl.cpp, SystemVolume.cpp, Brightness.cpp, Applications.cpp in this repo for how you can add Win32 API function via the AppService and Desktop Extension
  
