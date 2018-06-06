@@ -2,7 +2,7 @@
 
 This sample demonstrates how a UWP application can call Win32 methods unavailable to a UWP application to control the following: 
 * monitor brightness
-* global system volume
+* global system volume (now replaced with UWP code to set global system volume)
 * enumerate applications installed on the user's system and selectively launch an application
 
 The example uses a Win32 Desktop Extension and an AppService.
