@@ -89,17 +89,19 @@ We need to add a few settings so our Desktop Extension can call UWP methods. Ple
 
 * Select C/C++ | General and add the following settings
 
-    * Set Additional #using Directories to 
+* Set Additional #using Directories to 
+
 ```c++
 $(VC_LibraryPath_VC_x86_Store)\references\;C:\Program Files (x86)\Windows Kits\10\UnionMetadata\\$(TargetPlatformVersion);C:\Program Files (x86)\Windows Kits\10\UnionMetadata;C:\Program Files (x86)\Windows Kits\10\References\Windows.Foundation.UniversalApiContract\3.0.0.0;C:\Program Files (x86)\Windows Kits\10\References\Windows.Foundation.FoundationContract\3.0.0.0;%(AdditionalUsingDirectories)
 ```
-    * Set Consume Windows Runtime Extension to Yes/(ZW)
+
+* Set Consume Windows Runtime Extension to Yes/(ZW)
     
-    * Add /Zc:twoPhase-  to the C/C++ | Commannd line
+* Add /Zc:twoPhase-  to the C/C++ | Commannd line
     
-    * Set C/C++ Precompiled Headers to Not Using Precompiled Headers
+* Set C/C++ Precompiled Headers to Not Using Precompiled Headers
     
-    * Set Configuration Properties | General | Output Directory to $(SolutionDir)$(PlatformTarget)\$(Configuration)\
+* Set Configuration Properties | General | Output Directory to $(SolutionDir)$(PlatformTarget)\$(Configuration)\
 
 * Try to build the solution. All projects should build without an error.
 
