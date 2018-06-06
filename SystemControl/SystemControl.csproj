@@ -136,6 +136,12 @@
       <Name>Windows Desktop Extensions for the UWP</Name>
     </SDKReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\UWPGlobalVolume\UWPGlobalVolume.vcxproj">
+      <Project>{1a4a3fe1-2df1-4075-bab1-5d5900b23e89}</Project>
+      <Name>UWPGlobalVolume</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

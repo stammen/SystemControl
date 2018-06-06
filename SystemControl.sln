@@ -12,6 +12,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SystemControlDesktopExtensi
 EndProject
 Project("{C7167F0D-BC9F-4E6E-AFE1-012C56B48DB5}") = "PackageProject", "PackageProject\PackageProject.wapproj", "{2E5B052F-22D5-4419-92C1-55925AD4DE8F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UWPGlobalVolume", "UWPGlobalVolume\UWPGlobalVolume.vcxproj", "{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -80,6 +82,20 @@ Global
 		{2E5B052F-22D5-4419-92C1-55925AD4DE8F}.Release|x86.ActiveCfg = Release|x86
 		{2E5B052F-22D5-4419-92C1-55925AD4DE8F}.Release|x86.Build.0 = Release|x86
 		{2E5B052F-22D5-4419-92C1-55925AD4DE8F}.Release|x86.Deploy.0 = Release|x86
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Debug|ARM.ActiveCfg = Debug|ARM
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Debug|ARM.Build.0 = Debug|ARM
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Debug|x64.ActiveCfg = Debug|x64
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Debug|x64.Build.0 = Debug|x64
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Debug|x86.ActiveCfg = Debug|Win32
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Debug|x86.Build.0 = Debug|Win32
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Release|Any CPU.ActiveCfg = Release|Win32
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Release|ARM.ActiveCfg = Release|ARM
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Release|ARM.Build.0 = Release|ARM
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Release|x64.ActiveCfg = Release|x64
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Release|x64.Build.0 = Release|x64
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Release|x86.ActiveCfg = Release|Win32
+		{1A4A3FE1-2DF1-4075-BAB1-5D5900B23E89}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

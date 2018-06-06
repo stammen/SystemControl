@@ -10,6 +10,7 @@ using namespace std::placeholders;
 VolumeImpl::VolumeImpl()
 {
     m_event = CreateEvent(nullptr, false, false, nullptr);
+    // register for changes in Default audio device
     m_token = MediaDevice::DefaultAudioRenderDeviceChanged += ref new Windows::Foundation::TypedEventHandler<Platform::Object ^, DefaultAudioRenderDeviceChangedEventArgs ^>(std::bind(&VolumeImpl::OnDefaultAudioCaptureDeviceChanged, this, _1, _2));
 }
 
@@ -34,7 +35,7 @@ HRESULT VolumeImpl::InitializeVolumeInterface()
     HRESULT hr = ActivateAudioInterfaceAsync(id->Data(), __uuidof(IAudioEndpointVolume), nullptr, this, &asyncOp);
     if (SUCCEEDED(hr))
     {
-        WaitForSingleObject(m_event, INFINITE);
+        WaitForSingleObject(m_event, 1000);
     }
 
     return m_result;
@@ -51,12 +52,10 @@ void VolumeImpl::OnDefaultAudioCaptureDeviceChanged(Platform::Object^ sender, De
 bool VolumeImpl::SetVolume(float volume)
 {
     HRESULT hr = InitializeVolumeInterface();
-
     if (SUCCEEDED(hr) && m_volumeInterface != nullptr)
     {
         hr = m_volumeInterface->SetMasterVolumeLevelScalar(volume, NULL);
     }
-
     return SUCCEEDED(hr);
 }
 
@@ -65,12 +64,10 @@ float VolumeImpl::GetVolume()
 {
     float volume = 0.0f;
     HRESULT hr = InitializeVolumeInterface();
-
     if (SUCCEEDED(hr) && m_volumeInterface != nullptr)
     {
         hr = m_volumeInterface->GetMasterVolumeLevelScalar(&volume);
     }
-
     return volume;
 
 }
@@ -91,6 +88,11 @@ HRESULT VolumeImpl::ActivateCompleted(IActivateAudioInterfaceAsyncOperation *ope
     hr = operation->GetActivateResult(&hrActivateResult, &punkVolumeInterface);
     if (FAILED(hr))
     {
+        if (FAILED(hrActivateResult))
+        {
+            hr = hrActivateResult;
+        }
+
         goto exit;
     }
 

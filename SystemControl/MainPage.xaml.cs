@@ -37,15 +37,20 @@ namespace SystemControl
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        UWPGlobalVolume.Volume m_volume;
+
         public MainPage()
         {
             this.InitializeComponent();
+            m_volume = new UWPGlobalVolume.Volume();
         }
 
 
         protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             await LaunchDesktopExtension();
+            float volume = await m_volume.GetVolume();
+            systemVolumeSlider.Value = (double)(volume * 100.0f);
         }
 
         private async Task LaunchDesktopExtension()
@@ -75,12 +80,9 @@ namespace SystemControl
 
         private async void SystemVolumeSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
-            ValueSet message = new ValueSet();
-            message.Add("Message", "SystemVolume");
-            double value = e.NewValue / 100.0;
-            message.Add("Value", value);
-            var app = App.Current as App;
-            var result = await app.SendMessage(message);
+            // Global system audio volume can now be set using UWP. No need for Desktop Extension
+            bool result = await m_volume.SetVolume((float)(e.NewValue / 100.0));
+            return;
         }
 
         private async void GetApplications_Click(object sender, RoutedEventArgs e)
