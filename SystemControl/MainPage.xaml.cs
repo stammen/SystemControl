@@ -37,16 +37,16 @@ namespace SystemControl
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        UWPGlobalVolume.Volume m_volume;
+        UWPGlobalVolume.Volume m_volume = new UWPGlobalVolume.Volume();
+        private Utils.UWPBrightness m_brightness = new Utils.UWPBrightness();
 
         public MainPage()
         {
             this.InitializeComponent();
-            m_volume = new UWPGlobalVolume.Volume();
-        }
+    }
 
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+    protected override async void OnNavigatedTo(NavigationEventArgs e)
         {
             await LaunchDesktopExtension();
             float volume = await m_volume.GetVolume();
@@ -73,6 +73,7 @@ namespace SystemControl
             ValueSet message = new ValueSet();
             message.Add("Message", "Brightness");
             double value = e.NewValue / 100.0;
+            m_brightness.SetBrightness(value);
             message.Add("Value", value);
             var app = App.Current as App;
             var result = await app.SendMessage(message);

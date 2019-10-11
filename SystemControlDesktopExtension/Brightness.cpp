@@ -125,7 +125,7 @@ BOOL CALLBACK MonitorEnumProc(HMONITOR monitor, HDC hdc, LPRECT rect, LPARAM par
     return TRUE;
 }
 
-#if 0
+#if 1
 HRESULT Brightness::SetBrightness(double value)
 {
     HRESULT hr = S_OK;
