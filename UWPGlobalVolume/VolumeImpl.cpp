@@ -11,11 +11,12 @@ VolumeImpl::VolumeImpl()
 {
     m_event = CreateEvent(nullptr, false, false, nullptr);
     // register for changes in Default audio device
-    m_token = MediaDevice::DefaultAudioRenderDeviceChanged += ref new Windows::Foundation::TypedEventHandler<Platform::Object ^, DefaultAudioRenderDeviceChangedEventArgs ^>(std::bind(&VolumeImpl::OnDefaultAudioCaptureDeviceChanged, this, _1, _2));
+    m_token = MediaDevice::DefaultAudioRenderDeviceChanged += ref new Windows::Foundation::TypedEventHandler<Platform::Object^, DefaultAudioRenderDeviceChangedEventArgs^>(std::bind(&VolumeImpl::OnDefaultAudioCaptureDeviceChanged, this, _1, _2));
 }
 
 VolumeImpl::~VolumeImpl()
 {
+    UnregisterControlChangeNotify();
     CloseHandle(m_event);
     MediaDevice::DefaultAudioCaptureDeviceChanged -= m_token;
 }
@@ -23,12 +24,12 @@ VolumeImpl::~VolumeImpl()
 HRESULT VolumeImpl::InitializeVolumeInterface()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    
+
     if (m_volumeInterface != nullptr)
     {
         return S_OK;
     }
-    
+
     ComPtr<IActivateAudioInterfaceAsyncOperation> asyncOp;
     m_result = S_OK;
     auto id = MediaDevice::GetDefaultAudioRenderId(AudioDeviceRole::Default);
@@ -41,7 +42,7 @@ HRESULT VolumeImpl::InitializeVolumeInterface()
     return m_result;
 }
 
-void VolumeImpl::OnDefaultAudioCaptureDeviceChanged(Platform::Object^ sender, DefaultAudioRenderDeviceChangedEventArgs ^ args)
+void VolumeImpl::OnDefaultAudioCaptureDeviceChanged(Platform::Object^ sender, DefaultAudioRenderDeviceChangedEventArgs^ args)
 {
     // force next Set/GetVolume call to reinitialize the IAudioEndpointInterface
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -69,7 +70,37 @@ float VolumeImpl::GetVolume()
         hr = m_volumeInterface->GetMasterVolumeLevelScalar(&volume);
     }
     return volume;
+}
 
+bool VolumeImpl::SetMute(bool isMuted)
+{
+    HRESULT hr = InitializeVolumeInterface();
+    if (SUCCEEDED(hr) && m_volumeInterface != nullptr)
+    {
+        hr = m_volumeInterface->SetMute(isMuted, NULL);
+    }
+    return SUCCEEDED(hr);
+}
+
+bool VolumeImpl::GetMute()
+{
+    BOOL isMuted = false;
+    HRESULT hr = InitializeVolumeInterface();
+    if (SUCCEEDED(hr) && m_volumeInterface != nullptr)
+    {
+        hr = m_volumeInterface->GetMute(&isMuted);
+    }
+    return isMuted;
+
+}
+
+void VolumeImpl::UnregisterControlChangeNotify()
+{
+    HRESULT hr = InitializeVolumeInterface();
+    if (SUCCEEDED(hr) && m_volumeInterface != nullptr)
+    {
+        hr = m_volumeInterface->UnregisterControlChangeNotify(this);
+    }
 }
 
 //
@@ -78,7 +109,7 @@ float VolumeImpl::GetVolume()
 //  Callback implementation of ActivateAudioInterfaceAsync function.  This will be called on MTA thread
 //  when results of the activation are available.
 //
-HRESULT VolumeImpl::ActivateCompleted(IActivateAudioInterfaceAsyncOperation *operation)
+HRESULT VolumeImpl::ActivateCompleted(IActivateAudioInterfaceAsyncOperation* operation)
 {
     HRESULT hr = S_OK;
     HRESULT hrActivateResult = S_OK;
@@ -102,10 +133,17 @@ HRESULT VolumeImpl::ActivateCompleted(IActivateAudioInterfaceAsyncOperation *ope
         hr = E_NOINTERFACE;
         goto exit;
     }
+    m_volumeInterface->RegisterControlChangeNotify(this);
 
 exit:
     SetEvent(m_event);
     m_result = hr;
     // Need to return S_OK
+    return S_OK;
+}
+
+HRESULT VolumeImpl::OnNotify(PAUDIO_VOLUME_NOTIFICATION_DATA pNotify)
+{
+    this->VolumeChangedAction(pNotify->bMuted, pNotify->fMasterVolume);
     return S_OK;
 }
