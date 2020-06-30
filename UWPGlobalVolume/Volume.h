@@ -12,6 +12,9 @@ namespace UWPGlobalVolume
         Volume();
         Windows::Foundation::IAsyncOperation<bool>^ SetVolume(float volume);
         Windows::Foundation::IAsyncOperation<float>^ GetVolume();
+        Windows::Foundation::IAsyncOperation<bool>^ SetMute(bool isMuted);
+        Windows::Foundation::IAsyncOperation<bool>^ GetMute();
+        void RegisterVolumeChangedNotify(VolumeChangedHandler^ volumeChangedAction);
 
     private:
         Microsoft::WRL::ComPtr<VolumeImpl> m_volumeImpl;

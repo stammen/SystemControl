@@ -7,9 +7,11 @@
 
 namespace UWPGlobalVolume
 {
+    public delegate void VolumeChangedHandler(bool isMuted, float volume);
+
     // Primary WASAPI Capture Class
     class VolumeImpl :
-        public Microsoft::WRL::RuntimeClass<Microsoft::WRL::RuntimeClassFlags< Microsoft::WRL::ClassicCom>, Microsoft::WRL::FtmBase, IActivateAudioInterfaceCompletionHandler >
+        public Microsoft::WRL::RuntimeClass<Microsoft::WRL::RuntimeClassFlags< Microsoft::WRL::ClassicCom>, Microsoft::WRL::FtmBase, IActivateAudioInterfaceCompletionHandler, IAudioEndpointVolumeCallback >
     {
     public:
         VolumeImpl();
@@ -17,6 +19,10 @@ namespace UWPGlobalVolume
 
         bool SetVolume(float volume);
         float GetVolume();
+        bool SetMute(bool isMuted);
+        bool GetMute();
+
+        VolumeChangedHandler^ VolumeChangedAction;
 
     private:
         std::mutex m_mutex;
@@ -26,10 +32,15 @@ namespace UWPGlobalVolume
 
         HRESULT InitializeVolumeInterface();
 
-        void OnDefaultAudioCaptureDeviceChanged(Platform::Object^ sender, Windows::Media::Devices::DefaultAudioRenderDeviceChangedEventArgs ^ args);
+        void OnDefaultAudioCaptureDeviceChanged(Platform::Object^ sender, Windows::Media::Devices::DefaultAudioRenderDeviceChangedEventArgs^ args);
 
         // IActivateAudioInterfaceCompletionHandler
-        STDMETHOD(ActivateCompleted)(IActivateAudioInterfaceAsyncOperation *operation);
+        STDMETHOD(ActivateCompleted)(IActivateAudioInterfaceAsyncOperation* operation);
         Microsoft::WRL::ComPtr<IAudioEndpointVolume> m_volumeInterface;
+
+        // Inherited via IAudioEndpointVolumeCallback
+        STDMETHOD(OnNotify)(PAUDIO_VOLUME_NOTIFICATION_DATA pNotify);
+
+        void UnregisterControlChangeNotify();
     };
 }
