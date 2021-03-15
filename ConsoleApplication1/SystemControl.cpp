@@ -14,6 +14,7 @@ using namespace concurrency;
 using namespace Windows::ApplicationModel;
 using namespace Windows::ApplicationModel::Core;
 using namespace Windows::Foundation;
+using namespace Windows::Management::Deployment;
 
 SystemControl::SystemControl()
 {
@@ -27,8 +28,38 @@ SystemControl::~SystemControl()
 void SystemControl::SystemControlThread(const std::wstring& name)
 {
     Platform::String^ app = ref new Platform::String(name.c_str());
-
     std::wcout << L"Launching: " << name << std::endl;
+
+    auto pm = ref new PackageManager();
+    auto packages = pm->FindPackagesForUser(L"");
+    for (Package^ p : packages)
+    {
+        std::wcout << "DisplayName:" << p->DisplayName->Data() << std::endl;
+
+        auto appListEntries = p->GetAppListEntries();
+        if (appListEntries->Size == 0)
+        {
+            continue;
+        }
+
+        auto appListEntry = appListEntries->GetAt(0);
+       
+        if (appListEntry->DisplayInfo->DisplayName == app)
+        {
+            auto task = create_task(appListEntry->LaunchAsync());
+            task.wait();
+            bool result = task.get();
+            std::cout << "LaunchAsync result:" << result << std::endl;
+            if (result == true)
+            {
+                return;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
 
     if (name != L"SystemControl")
     {
