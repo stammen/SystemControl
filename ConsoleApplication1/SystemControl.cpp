@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>     
 #include <functional>
+#include <thread>
 
 #include <collection.h>  
 #include <thread>        
@@ -26,45 +27,44 @@ SystemControl::~SystemControl()
 {
 }
 
-
-
-int SystemControl::Run(const std::wstring& name)
+void SystemControl::SystemControlThread(const std::wstring& name)
 {
     Platform::String^ app = ref new Platform::String(name.c_str());
 
     if (name != L"SystemControl")
     {
-        Applications::LaunchApplication(app);
-        INPUT inputs[2];
+        INPUT inputs[1];
         ZeroMemory(inputs, sizeof(inputs));
         inputs[0].type = INPUT_KEYBOARD;
         inputs[0].ki.wVk = VK_MENU;
-        inputs[1].type = INPUT_KEYBOARD;
-        inputs[1].ki.wVk = VK_MENU;
-        inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
         UINT uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+        
+        Applications::LaunchApplication(app);
 
+        ZeroMemory(inputs, sizeof(inputs));
+        inputs[0].type = INPUT_KEYBOARD;
+        inputs[0].ki.wVk = VK_MENU;
+        inputs[0].ki.dwFlags = KEYEVENTF_KEYUP;
+        uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
     }
-
-    if (name == L"SystemControl")
+    else
     {
         std::cout << "SystemControl" << std::endl;
-
         auto task = create_task(Package::Current->GetAppListEntriesAsync());
-
-        create_task(task).then([this](IVectorView<AppListEntry^>^ appListEntries)
-        {
-            std::cout << "appListEntries" << std::endl;
-            auto task2 = create_task(appListEntries->GetAt(0)->LaunchAsync());
-            create_task(task2).then([this](bool result)
-            {
-                std::cout << "LaunchAsync result:" << result << std::endl;
-            });
-        });
+        task.wait();
+        auto appListEntries = task.get();
+        std::cout << "appListEntries" << std::endl;
+        auto task2 = create_task(appListEntries->GetAt(0)->LaunchAsync());
+        task2.wait();
+        bool result = task2.get();
+        std::cout << "LaunchAsync result:" << result << std::endl;
     }
+}
 
-    Sleep(5000);
-
+int SystemControl::Run(const std::wstring& name)
+{
+    std::thread t(&SystemControl::SystemControlThread, this, name);
+    t.join();
     return 0;
 }
 

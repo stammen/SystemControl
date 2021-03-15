@@ -19,6 +19,6 @@ public:
     int Run(const std::wstring& name);
 
 private:
-    void SystemControlThread();
+    void SystemControlThread(const std::wstring& name);
 
 };

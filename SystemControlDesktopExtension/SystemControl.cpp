@@ -55,7 +55,6 @@ void SystemControl::SystemControlThread()
 
 int SystemControl::Run()
 {
-    // run screen capture on separate thread
     std::thread t(&SystemControl::SystemControlThread, this);
     t.join();
     return 0;
