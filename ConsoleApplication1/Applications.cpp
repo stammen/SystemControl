@@ -17,15 +17,54 @@
 #include <propkey.h>
 #include <string>
 #include <sstream>     
+#include <iostream>
+#include <ppltasks.h>
 
+using namespace Windows::ApplicationModel;
 using namespace Windows::Storage;
 using namespace Windows::Foundation::Collections;
 using namespace Platform::Collections;
+using namespace Windows::Management::Deployment;
+using namespace concurrency;
 
 std::mutex Applications::s_mutex;
 
 HRESULT LaunchUWPApp(LPCWSTR aumid)
 {
+    Platform::String^ id = ref new  Platform::String(aumid);
+
+    auto pm = ref new PackageManager();
+    auto packages = pm->FindPackagesForUser(L"");
+    for (Package^ p : packages)
+    {
+        std::wcout << "DisplayName:" << p->DisplayName->Data() << std::endl;
+
+        auto appListEntries = p->GetAppListEntries();
+        if (appListEntries->Size == 0)
+        {
+            continue;
+        }
+
+        auto appListEntry = p->GetAppListEntries()->GetAt(0);
+
+        if (appListEntry->AppUserModelId == id)
+        {
+            auto task = create_task(appListEntry->LaunchAsync());
+            task.wait();
+            bool result = task.get();
+            std::cout << "LaunchAsync result:" << result << std::endl;
+            if (result == true)
+            {
+                return S_OK;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    // last resort
     CComPtr<IApplicationActivationManager> AppActivationMgr = nullptr;
     HRESULT hr = CoCreateInstance(CLSID_ApplicationActivationManager, nullptr, CLSCTX_LOCAL_SERVER, IID_PPV_ARGS(&AppActivationMgr));
     if (SUCCEEDED(hr))
