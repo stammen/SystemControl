@@ -11,12 +11,9 @@
 #include <iostream>
 
 using namespace concurrency;
-using namespace Windows::ApplicationModel::Core;
 using namespace Windows::ApplicationModel;
+using namespace Windows::ApplicationModel::Core;
 using namespace Windows::Foundation;
-using namespace Windows::Foundation::Collections;
-using namespace Windows::System;
-using namespace std::placeholders;
 
 SystemControl::SystemControl()
 {
@@ -30,6 +27,8 @@ SystemControl::~SystemControl()
 void SystemControl::SystemControlThread(const std::wstring& name)
 {
     Platform::String^ app = ref new Platform::String(name.c_str());
+
+    std::wcout << L"Launching: " << name << std::endl;
 
     if (name != L"SystemControl")
     {
@@ -49,7 +48,6 @@ void SystemControl::SystemControlThread(const std::wstring& name)
     }
     else
     {
-        std::cout << "SystemControl" << std::endl;
         auto task = create_task(Package::Current->GetAppListEntriesAsync());
         task.wait();
         auto appListEntries = task.get();
