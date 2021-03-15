@@ -42,6 +42,8 @@
     <EntryPointProjectUniqueName>..\SystemControl\SystemControl.csproj</EntryPointProjectUniqueName>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
     <AppxBundlePlatforms>x64</AppxBundlePlatforms>
+    <PackageCertificateThumbprint>43D4E2E8520B0CFE4C4A18C6C74282E44C8464AE</PackageCertificateThumbprint>
+    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <AppxBundle>Always</AppxBundle>
@@ -76,6 +78,7 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ConsoleApplication1\ConsoleApplication1.vcxproj" />
     <ProjectReference Include="..\SystemControlDesktopExtension\SystemControlDesktopExtension.vcxproj" />
     <ProjectReference Include="..\SystemControl\SystemControl.csproj" />
   </ItemGroup>
