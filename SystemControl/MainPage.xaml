@@ -18,6 +18,7 @@
                 <ComboBox x:Name="applicationsComboBox" SelectionChanged="ComboBox_SelectionChanged" Margin="10">
                     <ComboBoxItem IsSelected="True">N/A</ComboBoxItem>
                 </ComboBox>
+                <Button Content="Launch App" Click="LaunchApp_Click" />
             </StackPanel>
         </StackPanel>
     </Grid>

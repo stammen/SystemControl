@@ -17,15 +17,54 @@
 #include <propkey.h>
 #include <string>
 #include <sstream>     
+#include <iostream>
+#include <ppltasks.h>
 
+using namespace Windows::ApplicationModel;
 using namespace Windows::Storage;
 using namespace Windows::Foundation::Collections;
 using namespace Platform::Collections;
+using namespace Windows::Management::Deployment;
+using namespace concurrency;
 
 std::mutex Applications::s_mutex;
 
 HRESULT LaunchUWPApp(LPCWSTR aumid)
 {
+    Platform::String^ id = ref new  Platform::String(aumid);
+
+    auto pm = ref new PackageManager();
+    auto packages = pm->FindPackagesForUser(L"");
+    for (Package^ p : packages)
+    {
+        std::wcout << "DisplayName:" << p->DisplayName->Data() << std::endl;
+
+        auto appListEntries = p->GetAppListEntries();
+        if (appListEntries->Size == 0)
+        {
+            continue;
+        }
+
+        auto appListEntry = p->GetAppListEntries()->GetAt(0);
+
+        if (appListEntry->AppUserModelId == id)
+        {
+            auto task = create_task(appListEntry->LaunchAsync());
+            task.wait();
+            bool result = task.get();
+            std::cout << "LaunchAsync result:" << result << std::endl;
+            if (result == true)
+            {
+                return S_OK;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    // last resort
     CComPtr<IApplicationActivationManager> AppActivationMgr = nullptr;
     HRESULT hr = CoCreateInstance(CLSID_ApplicationActivationManager, nullptr, CLSCTX_LOCAL_SERVER, IID_PPV_ARGS(&AppActivationMgr));
     if (SUCCEEDED(hr))
@@ -53,7 +92,7 @@ HRESULT LaunchAppFromShortCut(IShellItem* psi)
 
         PIDLIST_ABSOLUTE pidl;
 
-        hr= SHGetIDListFromObject(psi, &pidl);
+        hr = SHGetIDListFromObject(psi, &pidl);
         if (SUCCEEDED(hr))
         {
             // set the shortcut info for this app
@@ -95,7 +134,7 @@ HRESULT LaunchAppFromShortCut(IShellItem* psi)
     return hr;
 }
 
-Platform::String^ GetDisplayName(IShellItem *psi, SIGDN sigdn)
+Platform::String^ GetDisplayName(IShellItem* psi, SIGDN sigdn)
 {
     LPWSTR pszName = nullptr;
     Platform::String^ result = ref new Platform::String();
@@ -108,7 +147,7 @@ Platform::String^ GetDisplayName(IShellItem *psi, SIGDN sigdn)
     return result;
 }
 
-Platform::String^ GetParsingPath(IShellItem2  *psi2)
+Platform::String^ GetParsingPath(IShellItem2* psi2)
 {
     LPWSTR pszValue;
     Platform::String^ result = ref new Platform::String();
@@ -122,21 +161,41 @@ Platform::String^ GetParsingPath(IShellItem2  *psi2)
 
 Windows::Foundation::Collections::ValueSet^ Applications::LaunchApplication(Platform::String^ name)
 {
+    // simulate press of ALT key to clear ForeGroundWindow lock
+    INPUT inputs[1];
+    ZeroMemory(inputs, sizeof(inputs));
+    inputs[0].type = INPUT_KEYBOARD;
+    inputs[0].ki.wVk = VK_MENU;
+    UINT uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+
+    auto result = LaunchApplicationImp(name);
+
+    ZeroMemory(inputs, sizeof(inputs));
+    inputs[0].type = INPUT_KEYBOARD;
+    inputs[0].ki.wVk = VK_MENU;
+    inputs[0].ki.dwFlags = KEYEVENTF_KEYUP;
+    uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+
+    return result;
+}
+
+Windows::Foundation::Collections::ValueSet^ Applications::LaunchApplicationImp(Platform::String^ name)
+{
     ValueSet^ result = ref new ValueSet;
-    IShellItem *psiFolder;
+    IShellItem* psiFolder;
     bool found = false;
-    
+
     HRESULT hr = SHGetKnownFolderItem(FOLDERID_AppsFolder, KF_FLAG_DEFAULT, NULL, IID_PPV_ARGS(&psiFolder));
     if (SUCCEEDED(hr))
     {
-        IEnumShellItems *pesi;
+        IEnumShellItems* pesi;
         hr = psiFolder->BindToHandler(NULL, BHID_EnumItems, IID_PPV_ARGS(&pesi));
         if (hr == S_OK)
         {
-            IShellItem *psi;
+            IShellItem* psi;
             while (pesi->Next(1, &psi, NULL) == S_OK && !found)
             {
-                IShellItem2 *psi2;
+                IShellItem2* psi2;
                 if (SUCCEEDED(psi->QueryInterface(IID_PPV_ARGS(&psi2))))
                 {
                     auto appName = GetDisplayName(psi2, SIGDN_NORMALDISPLAY);
@@ -181,19 +240,19 @@ ValueSet^ Applications::GetApplications()
     ValueSet^ result = ref new ValueSet;
     Vector<Platform::String^>^ applications = ref new Vector<Platform::String^>();
 
-    IShellItem *psiFolder;
+    IShellItem* psiFolder;
     HRESULT hr = SHGetKnownFolderItem(FOLDERID_AppsFolder, KF_FLAG_DEFAULT, NULL, IID_PPV_ARGS(&psiFolder));
-    if (SUCCEEDED(hr)) 
+    if (SUCCEEDED(hr))
     {
-        IEnumShellItems *pesi;
+        IEnumShellItems* pesi;
         hr = psiFolder->BindToHandler(NULL, BHID_EnumItems, IID_PPV_ARGS(&pesi));
         if (SUCCEEDED(hr))
         {
-            IShellItem *psi;
+            IShellItem* psi;
             while (pesi->Next(1, &psi, NULL) == S_OK)
             {
-                IShellItem2 *psi2;
-                if (SUCCEEDED(psi->QueryInterface(IID_PPV_ARGS(&psi2)))) 
+                IShellItem2* psi2;
+                if (SUCCEEDED(psi->QueryInterface(IID_PPV_ARGS(&psi2))))
                 {
                     auto name = GetDisplayName(psi2, SIGDN_NORMALDISPLAY);
                     if (!name->IsEmpty())

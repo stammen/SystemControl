@@ -20,5 +20,6 @@ public:
     static Windows::Foundation::Collections::ValueSet^ LaunchApplication(Platform::String^ name);
 
 private:
+    static Windows::Foundation::Collections::ValueSet^ LaunchApplicationImp(Platform::String^ name);
     static std::mutex s_mutex;
 };

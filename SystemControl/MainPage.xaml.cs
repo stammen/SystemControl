@@ -86,6 +86,19 @@ namespace SystemControl
             return;
         }
 
+        private async void LaunchApp_Click(object sender, RoutedEventArgs e)
+        {
+            if (applicationsComboBox.SelectedIndex > 0)
+            {
+                ValueSet message = new ValueSet();
+                message.Add("Message", "LaunchApplication");
+                var name = applicationsComboBox.Items[applicationsComboBox.SelectedIndex] as string;
+                message.Add("Name", name);
+                var app = App.Current as App;
+                var result = await app.SendMessage(message);
+            }
+        }
+
         private async void GetApplications_Click(object sender, RoutedEventArgs e)
         {
             ValueSet message = new ValueSet();
@@ -115,17 +128,9 @@ namespace SystemControl
 
         }
 
-        private async void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (applicationsComboBox.SelectedIndex > 0)
-            {
-                ValueSet message = new ValueSet();
-                message.Add("Message", "LaunchApplication");
-                var name = applicationsComboBox.Items[applicationsComboBox.SelectedIndex] as string;
-                message.Add("Name", name);
-                var app = App.Current as App;
-                var result = await app.SendMessage(message);
-            }
+
         }
     }
 }
